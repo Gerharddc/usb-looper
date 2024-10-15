@@ -1,0 +1,67 @@
+import { Button, VerticalBox, ListView, CheckBox, AboutSlint } from "std-widgets.slint";
+
+component DeviceBlock inherits Rectangle {
+    in property <string> text;
+    in property <bool> disabled;
+
+    callback clicked();
+
+    height: 40px;
+    Button {
+        text: root.text;
+        width: parent.width;
+        enabled: !root.disabled;
+        clicked => {
+            root.clicked();
+        }
+    }
+}
+
+struct DeviceData {
+    bus: int,
+    address: int,
+    vendor_id: string,
+    product_id: string,
+}
+
+export component AppWindow inherits Window {
+    in property <bool> looping;
+    in property <[DeviceData]> devices: [
+        { bus: 1, address: 2, vendor_id: "0x1234", product_id: "0x5678" },
+        { bus: 3, address: 4, vendor_id: "0x4321", product_id: "0x8765" },
+    ];
+    title: "USB Looper";
+
+    callback refresh-clicked(bool);
+    callback device-clicked(DeviceData);
+
+    VerticalBox {
+        Text {
+            font-size: 20px;
+            text: "Select Device";
+        }
+
+        ListView {
+            width: 300px;
+            height: 300px;
+            enabled: !root.looping;
+
+            for device in root.devices: DeviceBlock {
+                text: "B\{device.bus} D\{device.address} - \{device.vendor_id}:\{device.product_id}";
+                disabled: root.looping;
+                width: parent.width;
+
+                clicked => {
+                    root.device-clicked(device);
+                }
+            }
+        }
+
+        Button {
+            text: root.looping ? "Stop Looping" : "Refresh";
+            clicked => {
+                root.refresh-clicked(root.looping);
+            }
+        }
+    }
+}
